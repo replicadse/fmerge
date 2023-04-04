@@ -5,7 +5,7 @@ use clap::Arg;
 use crate::error::Error;
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum Privilege {
+pub(crate) enum Privilege {
     Normal,
     Experimental,
 }
@@ -29,19 +29,13 @@ impl CallArgs {
 }
 
 #[derive(Debug)]
-pub enum ManualFormat {
+pub(crate) enum ManualFormat {
     Manpages,
     Markdown,
 }
 
 #[derive(Debug)]
-pub enum Format {
-    JSON,
-    YAML,
-}
-
-#[derive(Debug)]
-pub enum Command {
+pub(crate) enum Command {
     Manual { path: String, format: ManualFormat },
     Autocomplete { path: String, shell: clap_complete::Shell },
 
@@ -89,6 +83,7 @@ impl ClapArgumentLoader {
             )
             .subcommand(
                 clap::Command::new("merge")
+                    .alias("m")
                     .about("Merge.")
                     .arg(clap::Arg::new("file").short('f').long("file").required(true))
                     .arg(clap::Arg::new("pattern").short('p').long("pattern").required(true)),

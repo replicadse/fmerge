@@ -81,6 +81,6 @@ mod tests {
 
     #[test]
     fn test_merge_mds() {
-        assert!("# A\n# B\n# C" == exec(r#"cargo run -- merge -f=./test/a.md -p="{{ _include \",\" }}""#).unwrap())
+        assert!("# A\n# B\n# C" == exec(r#"cargo run -- m -f=./test/a.md -p="{{ _include \",\" }}""#).unwrap())
     }
 }
