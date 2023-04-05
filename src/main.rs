@@ -43,8 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn merge(path: &Path, pattern: &str) -> Result<(), Error> {
-    let pat_s = pattern.splitn(2, ",").collect::<Vec<_>>();
-    let regex = fancy_regex::Regex::new(&format!("{}.*{}", &pat_s[0], &pat_s[1]))
+    let pat_s = pattern.splitn(2, "%f").collect::<Vec<_>>();
+    let regex = fancy_regex::Regex::new(&format!("{}(.*?){}", &pat_s[0], &pat_s[1]))
         .or(Err(error::Error::Generic("failed to parse regex".to_owned())))?;
     let strip = |v: &str| -> String { return v.trim_start_matches(pat_s[0]).trim_end_matches(pat_s[1]).to_owned() };
 
@@ -53,13 +53,20 @@ async fn merge(path: &Path, pattern: &str) -> Result<(), Error> {
 }
 
 fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str) -> String) -> Result<String, Error> {
-    let mut content = std::fs::read_to_string(path)?;
+    let mut content = std::fs::read_to_string(path).or(Err(Error::Generic(format!(
+        "can not read file {}",
+        path.to_str().unwrap()
+    ))))?;
     let rel_dir = path.parent().unwrap().to_str().unwrap();
 
     for m in pattern.find_iter(&content.clone()) {
         let mat = m.or(Err(error::Error::Generic("match error".to_owned())))?.as_str();
-        let subf = format!("{}/{}", rel_dir, strip(mat));
+
+        let mat_arg = strip(mat);
+        let subf = format!("{}/{}", rel_dir, mat_arg);
+        dbg!(mat_arg.clone());
         let subf_content = resolve_file(&Path::new(&subf), pattern, strip)?;
+
         content = content.replace(mat, &subf_content);
     }
     Ok(content)
@@ -81,6 +88,20 @@ mod tests {
 
     #[test]
     fn test_merge_mds() {
-        assert!("# A\n# B\n# C" == exec(r#"cargo run -- m -f=./test/a.md -p="{{ _include \",\" }}""#).unwrap())
+        assert!("# A\n# B\n# C" == exec(r#"cargo run -- m -f=./test/md/a.md -p="{{ _include \"%f\" }}""#).unwrap())
+    }
+
+    #[test]
+    fn test_merge_yamls() {
+        assert!(
+            r#"root:
+  childA:
+    test: ok
+  childB:
+    test: ok
+  childC:
+    test: ok
+"# == exec(r##"cargo run -- m -f=./test/yaml/a.yaml -p="#include %f!""##).unwrap()
+        )
     }
 }

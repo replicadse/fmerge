@@ -1,0 +1,4 @@
+root:
+  childA:
+    test: ok
+#include b.yaml.part!#include c.yaml.part!

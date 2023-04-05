@@ -24,7 +24,6 @@ fn collect_commands() -> Vec<(String, clap::Command)> {
 pub(crate) fn build_shell_completion(outdir: &Path, shell: &Shell) -> Result<(), Error> {
     let mut app = ClapArgumentLoader::root_command();
     clap_complete::generate_to(*shell, &mut app, "fmerge", &outdir)?;
-
     Ok(())
 }
 
@@ -43,6 +42,5 @@ pub(crate) fn build_manpages(outdir: &Path) -> Result<(), Error> {
         let mut file = File::create(&file)?;
         Man::new(cmd.1).render(&mut file)?;
     }
-
     Ok(())
 }

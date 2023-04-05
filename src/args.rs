@@ -17,7 +17,7 @@ pub(crate) struct CallArgs {
 }
 
 impl CallArgs {
-    pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn validate(&self) -> Result<(), Error> {
         if self.privileges == Privilege::Experimental {
             return Ok(());
         }
@@ -88,10 +88,9 @@ impl ClapArgumentLoader {
                     .arg(clap::Arg::new("file").short('f').long("file").required(true))
                     .arg(clap::Arg::new("pattern").short('p').long("pattern").required(true)),
             )
-            .subcommand(clap::Command::new("experimental").about("Experimental"))
     }
 
-    pub fn load() -> Result<CallArgs, Box<dyn std::error::Error>> {
+    pub fn load() -> Result<CallArgs, Error> {
         let command = Self::root_command().get_matches();
 
         let privileges = if command.get_flag("experimental") {
@@ -106,7 +105,7 @@ impl ClapArgumentLoader {
                 format: match subc.get_one::<String>("format").unwrap().as_str() {
                     | "manpages" => ManualFormat::Manpages,
                     | "markdown" => ManualFormat::Markdown,
-                    | _ => return Err(Box::new(Error::Argument("unknown format".into()))),
+                    | _ => return Err(Error::Argument("unknown format".into())),
                 },
             }
         } else if let Some(subc) = command.subcommand_matches("autocomplete") {
@@ -120,7 +119,7 @@ impl ClapArgumentLoader {
                 pattern: subc.get_one::<String>("pattern").unwrap().into(),
             }
         } else {
-            return Err(Box::new(Error::UnknownCommand));
+            return Err(Error::UnknownCommand);
         };
 
         let callargs = CallArgs {
