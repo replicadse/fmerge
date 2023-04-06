@@ -44,8 +44,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn merge(path: &Path, pattern: &str) -> Result<(), Error> {
     let pat_s = pattern.splitn(2, "%f").collect::<Vec<_>>();
-    let regex = fancy_regex::Regex::new(&format!("{}(.*?){}", &pat_s[0], &pat_s[1]))
-        .or(Err(error::Error::Generic("failed to parse regex".to_owned())))?;
+    let regex = fancy_regex::Regex::new(&format!(
+        "{}(.*?){}",
+        fancy_regex::escape(&pat_s[0]),
+        fancy_regex::escape(&pat_s[1])
+    ))
+    .or(Err(error::Error::Generic("failed to parse regex".to_owned())))?;
     let strip = |v: &str| -> String { return v.trim_start_matches(pat_s[0]).trim_end_matches(pat_s[1]).to_owned() };
 
     print!("{}", resolve_file(path, &regex, &strip)?);
@@ -64,7 +68,6 @@ fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str)
 
         let mat_arg = strip(mat);
         let subf = format!("{}/{}", rel_dir, mat_arg);
-        dbg!(mat_arg.clone());
         let subf_content = resolve_file(&Path::new(&subf), pattern, strip)?;
 
         content = content.replace(mat, &subf_content);
