@@ -1,4 +1,7 @@
-use std::{result::Result, str::FromStr};
+use std::{
+    result::Result,
+    str::FromStr,
+};
 
 use clap::Arg;
 

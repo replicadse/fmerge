@@ -1,10 +1,14 @@
-use clap_complete::Shell;
-use clap_mangen::Man;
 use std::{
     fs::File,
-    io::{Error, Write},
+    io::{
+        Error,
+        Write,
+    },
     path::Path,
 };
+
+use clap_complete::Shell;
+use clap_mangen::Man;
 
 use crate::args::ClapArgumentLoader;
 

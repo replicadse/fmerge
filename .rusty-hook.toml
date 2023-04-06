@@ -1,4 +1,5 @@
 [hooks]
+pre-commit = "neomake x -c \"hook:pre-commit\""
 pre-push = "neomake x -c \"hook:pre-push\""
 
 [logging]
