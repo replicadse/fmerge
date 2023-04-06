@@ -36,10 +36,20 @@ pub(crate) enum ManualFormat {
 
 #[derive(Debug)]
 pub(crate) enum Command {
-    Manual { path: String, format: ManualFormat },
-    Autocomplete { path: String, shell: clap_complete::Shell },
+    Manual {
+        path: String,
+        format: ManualFormat,
+    },
+    Autocomplete {
+        path: String,
+        shell: clap_complete::Shell,
+    },
 
-    Merge { file: String, pattern: String },
+    Merge {
+        file: String,
+        pattern: String,
+        placeholder: String,
+    },
 }
 
 pub(crate) struct ClapArgumentLoader {}
@@ -86,7 +96,8 @@ impl ClapArgumentLoader {
                     .alias("m")
                     .about("Merge.")
                     .arg(clap::Arg::new("file").short('f').long("file").required(true))
-                    .arg(clap::Arg::new("pattern").short('p').long("pattern").required(true)),
+                    .arg(clap::Arg::new("pattern").short('p').long("pattern").required(true))
+                    .arg(clap::Arg::new("placeholder").long("placeholder").default_value("%f")),
             )
     }
 
@@ -117,6 +128,7 @@ impl ClapArgumentLoader {
             Command::Merge {
                 file: subc.get_one::<String>("file").unwrap().into(),
                 pattern: subc.get_one::<String>("pattern").unwrap().into(),
+                placeholder: subc.get_one::<String>("placeholder").unwrap().into(),
             }
         } else {
             return Err(Error::UnknownCommand);

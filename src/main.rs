@@ -35,15 +35,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             reference::build_shell_completion(&out_path, &shell)?;
             Ok(())
         },
-        | crate::args::Command::Merge { file, pattern } => {
-            merge(std::fs::canonicalize(file)?.as_path(), &pattern).await?;
+        | crate::args::Command::Merge {
+            file,
+            pattern,
+            placeholder,
+        } => {
+            merge(std::fs::canonicalize(file)?.as_path(), &pattern, &placeholder).await?;
             Ok(())
         },
     }
 }
 
-async fn merge(path: &Path, pattern: &str) -> Result<(), Error> {
-    let pat_s = pattern.splitn(2, "%f").collect::<Vec<_>>();
+async fn merge(path: &Path, pattern: &str, placeholder: &str) -> Result<(), Error> {
+    let pat_s = pattern.splitn(2, placeholder).collect::<Vec<_>>();
     let regex = fancy_regex::Regex::new(&format!(
         "{}(.*?){}",
         fancy_regex::escape(&pat_s[0]),
@@ -103,7 +107,7 @@ mod tests {
     test: ok
   childC:
     test: ok
-"# == exec(r##"cargo run -- m -f=./test/yaml/a.yaml -p="#include %f!""##).unwrap()
+"# == exec(r##"cargo run -- m -f=./test/yaml/a.yaml -p="#include **placeholder**!" --placeholder="**placeholder**""##).unwrap()
         )
     }
 }
