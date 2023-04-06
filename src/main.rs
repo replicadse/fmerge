@@ -61,14 +61,13 @@ fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str)
         "can not read file {}",
         path.to_str().unwrap()
     ))))?;
-    let rel_dir = path.parent().unwrap().to_str().unwrap();
+    let rel_dir = path.parent().unwrap();
 
     for m in pattern.find_iter(&content.clone()) {
         let mat = m.or(Err(error::Error::Generic("match error".to_owned())))?.as_str();
 
-        let mat_arg = strip(mat);
-        let subf = format!("{}/{}", rel_dir, mat_arg);
-        let subf_content = resolve_file(&Path::new(&subf), pattern, strip)?;
+        let filename_arg = strip(mat).replace("/", &std::path::MAIN_SEPARATOR.to_string());
+        let subf_content = resolve_file(&rel_dir.join(filename_arg), pattern, strip)?;
 
         content = content.replace(mat, &subf_content);
     }
