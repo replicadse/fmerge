@@ -1,12 +1,14 @@
-version: 0.3
+version: 0.5
 
-chains:
+nodes:
   build:
     matrix:
-      - - env:
-            RELEASE: ""
-        - env:
-            RELEASE: "--release"
+      dense:
+        dimensions:
+          - - env:
+                RELEASE: ""
+            - env:
+                RELEASE: "--release"
     tasks:
       - script: |
           set -e
@@ -17,6 +19,17 @@ chains:
       - script: |
           set -e
           cargo test
+  fmt:
+    tasks:
+      - script: |
+          set -e
+          cargo +nightly fmt
+
+  "hook:pre-commit":
+    tasks:
+      - script: |
+          set -e
+          cargo +nightly fmt -- --check
 
   "hook:pre-push":
     pre:

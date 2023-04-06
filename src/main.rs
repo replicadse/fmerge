@@ -1,7 +1,12 @@
 include!("check_features.rs");
 
-use std::path::{Path, PathBuf};
-use std::result::Result;
+use std::{
+    path::{
+        Path,
+        PathBuf,
+    },
+    result::Result,
+};
 
 use args::ManualFormat;
 use error::Error;
@@ -80,7 +85,10 @@ fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str)
 
 #[cfg(test)]
 mod tests {
-    use std::{error::Error, process::Command};
+    use std::{
+        error::Error,
+        process::Command,
+    };
 
     fn exec(command: &str) -> Result<String, Box<dyn Error>> {
         let output = Command::new("sh").arg("-c").arg(command).output()?;
