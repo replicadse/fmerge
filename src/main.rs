@@ -1,15 +1,16 @@
 include!("check_features.rs");
 
-use std::{
-    path::{
-        Path,
-        PathBuf,
+use {
+    args::ManualFormat,
+    error::Error,
+    std::{
+        path::{
+            Path,
+            PathBuf,
+        },
+        result::Result,
     },
-    result::Result,
 };
-
-use args::ManualFormat;
-use error::Error;
 
 pub mod args;
 pub mod error;
@@ -115,7 +116,13 @@ mod tests {
     test: ok
   childC:
     test: ok
-"# == exec(r##"cargo run -- m -f=./test/yaml/a.yaml -p="#include **placeholder**!" --placeholder="**placeholder**""##).unwrap()
+"# == exec(
+                r##"cargo run -- m \
+-f=./test/yaml/a.yaml \
+-p="#include **placeholder**!" \
+--placeholder="**placeholder**""##
+            )
+            .unwrap()
         )
     }
 }

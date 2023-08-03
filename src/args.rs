@@ -1,11 +1,11 @@
-use std::{
-    result::Result,
-    str::FromStr,
+use {
+    crate::error::Error,
+    clap::Arg,
+    std::{
+        result::Result,
+        str::FromStr,
+    },
 };
-
-use clap::Arg;
-
-use crate::error::Error;
 
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) enum Privilege {

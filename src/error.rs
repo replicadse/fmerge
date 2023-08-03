@@ -8,7 +8,6 @@ pub(crate) enum Error {
     IO(#[from] std::io::Error),
     #[error("generic")]
     Generic(String),
-
     #[error("argument")]
     Argument(String),
     // #[error("experimental command")]
