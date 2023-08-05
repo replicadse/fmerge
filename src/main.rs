@@ -1,14 +1,10 @@
-include!("check_features.rs");
-
 use {
+    anyhow::Result,
     args::ManualFormat,
     error::Error,
-    std::{
-        path::{
-            Path,
-            PathBuf,
-        },
-        result::Result,
+    std::path::{
+        Path,
+        PathBuf,
     },
 };
 
@@ -17,7 +13,7 @@ pub mod error;
 pub mod reference;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let cmd = crate::args::ClapArgumentLoader::load()?;
     cmd.validate()?;
 
@@ -86,17 +82,16 @@ fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str)
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        error::Error,
-        process::Command,
+    use {
+        crate::error::Error,
+        anyhow::Result,
+        std::process::Command,
     };
 
-    fn exec(command: &str) -> Result<String, Box<dyn Error>> {
+    fn exec(command: &str) -> Result<String> {
         let output = Command::new("sh").arg("-c").arg(command).output()?;
         if output.status.code().unwrap() != 0 {
-            return Err(Box::new(crate::error::Error::Generic(
-                String::from_utf8(output.stderr).unwrap(),
-            )));
+            return Err(Error::Generic(String::from_utf8(output.stderr).unwrap()).into());
         }
         Ok(String::from_utf8(output.stdout)?)
     }
