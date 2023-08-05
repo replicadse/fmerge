@@ -65,7 +65,7 @@ The resulting file will be printed to `STDOUT` and will look like this:
 ```
 
 The text replacement is done without respect to the formatting. The structure above is valid JSON, just formatted incorrectly. `fmerge` does not modify the content it merges in any way, shape or form.\
-The correctly formatting JSON looks as follows:
+The correctly formatted  JSON looks as follows:
 
 ```json
 {
