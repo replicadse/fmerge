@@ -168,7 +168,75 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="fmerge"><a class="header" href="#fmerge">fmerge</a></h1>
-<p><code>fmerge</code> is a tool that allows merging files recursively with custom placeholder patterns.</p>
+<p><code>fmerge</code> is a tool that allows merging files <strong>recursively</strong> and with custom placeholder patterns. The include file statements are always relative to the file that includes them.</p>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<h3 id="test-data"><a class="header" href="#test-data">Test data</a></h3>
+<p>root.json</p>
+<pre><code class="language-json:root.json">{
+    &quot;data&quot;: [
+        {{ ./item1.json }},
+        {{ ./item2.json }}
+    ]
+}
+</code></pre>
+<p>item1.json</p>
+<pre><code class="language-json">{
+    &quot;name&quot;: &quot;Item 1&quot;,
+    &quot;data&quot;: {{ ./item_data.json }}
+}
+</code></pre>
+<p>item2.json</p>
+<pre><code class="language-json">{
+    &quot;name&quot;: &quot;Item 2&quot;,
+    &quot;data&quot;: {{ ./item_data.json }}
+}
+</code></pre>
+<p>item_data.json</p>
+<pre><code class="language-json">{
+    &quot;foo&quot;: &quot;bar&quot;
+}
+</code></pre>
+<h3 id="execution"><a class="header" href="#execution">Execution</a></h3>
+<p>Merging these files together can be done by executing the following code:</p>
+<pre><code class="language-bash">fmerge merge -f=./root.json -p=&quot;{{ %f }}&quot;
+</code></pre>
+<p>The resulting file will be printed to <code>STDOUT</code> and will look like this:</p>
+<pre><code class="language-json">{
+    &quot;data&quot;: [
+        {
+            &quot;name&quot;: &quot;Item 1&quot;,
+    &quot;data&quot;: {
+    &quot;foo&quot;: &quot;bar&quot;
+}
+},
+        {
+            &quot;name&quot;: &quot;Item 2&quot;,
+    &quot;data&quot;: {
+    &quot;foo&quot;: &quot;bar&quot;
+}
+}
+    ]
+}
+</code></pre>
+<p>The text replacement is done without respect to the formatting. The structure above is valid JSON, just formatted incorrectly. <code>fmerge</code> does not modify the content it merges in any way, shape or form.<br />
+The correctly formatting JSON looks as follows:</p>
+<pre><code class="language-json">{
+    &quot;data&quot;: [
+        {
+            &quot;name&quot;: &quot;Item 1&quot;,
+            &quot;data&quot;: {
+                &quot;foo&quot;: &quot;bar&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;Item 2&quot;,
+            &quot;data&quot;: {
+                &quot;foo&quot;: &quot;bar&quot;
+            }
+        }
+    ]
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="command-line-help-for-fmerge"><a class="header" href="#command-line-help-for-fmerge">Command-Line Help for <code>fmerge</code></a></h1>
 <p>This document contains the help content for the <code>fmerge</code> command-line program.</p>
 <p><strong>Command Overview:</strong></p>
