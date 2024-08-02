@@ -1,6 +1,0 @@
-[hooks]
-pre-commit = "neomake plan -n \"hook:pre-commit\" | neomake x -w4"
-pre-push = "neomake plan -n \"hook:pre-push\" | neomake x -w4"
-
-[logging]
-verbose = true
