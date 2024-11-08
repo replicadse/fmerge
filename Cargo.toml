@@ -12,13 +12,10 @@ categories = ["command-line-utilities"]
 readme = "docs/README.md"
 
 [features]
-  default = []
+default = []
 
-[profile]
-  [dev]
-    opt-level = 0
-  [release]
-    opt-level = 3
+[profile.release]
+lto = true
 
 [dependencies]
 clap = "^4.1.8"

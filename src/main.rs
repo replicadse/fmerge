@@ -109,12 +109,15 @@ mod tests {
 
     #[test]
     fn test_merge_mds() {
-        assert!("# A\n# B\n# C\n# C" == exec(r#"cargo run -- m -f=./test/md/a.md -p="{{ _include \"%f\" }}""#).unwrap())
+        let res = exec(r#"cargo run -- m -f=./test/md/a.md"#).unwrap();
+        assert_eq!("# A\n# B\n# C\n# C", res)
     }
 
     #[test]
     fn test_merge_yamls() {
-        assert!(
+        let res = exec(r##"cargo run -- m -f=./test/yaml/a.yaml.part"##).unwrap();
+
+        assert_eq!(
             r#"root:
   childA:
     test: ok
@@ -122,13 +125,8 @@ mod tests {
     test: ok
   childC:
     test: ok
-"# == exec(
-                r##"cargo run -- m \
--f=./test/yaml/a.yaml \
--p="#include **placeholder**!" \
---placeholder="**placeholder**""##
-            )
-            .unwrap()
+"#,
+            res
         )
     }
 }

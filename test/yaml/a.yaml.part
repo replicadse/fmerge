@@ -1,0 +1,5 @@
+root:
+  childA:
+    test: ok
+  {{ b.yaml.part +2 }}
+  {{ c.yaml.part +2 }}
