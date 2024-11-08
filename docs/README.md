@@ -41,7 +41,7 @@ item_data.json
 Merging these files together can be done by executing the following code:
 
 ```bash
-fmerge merge -f=./root.json -p="{{ %f }}"
+fmerge merge -f=./root.json -r="{{ (.*) (\+?[0-9]*) }}"
 ```
 
 The resulting file will be printed to `STDOUT` and will look like this:

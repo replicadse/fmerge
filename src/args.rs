@@ -1,10 +1,7 @@
 use {
-    crate::error::Error,
+    anyhow::Result,
     clap::Arg,
-    std::{
-        result::Result,
-        str::FromStr,
-    },
+    std::str::FromStr,
 };
 
 #[derive(Debug, Eq, PartialEq)]
@@ -20,7 +17,7 @@ pub(crate) struct CallArgs {
 }
 
 impl CallArgs {
-    pub fn validate(&self) -> Result<(), Error> {
+    pub fn validate(&self) -> Result<()> {
         if self.privileges == Privilege::Experimental {
             return Ok(());
         }
@@ -39,20 +36,10 @@ pub(crate) enum ManualFormat {
 
 #[derive(Debug)]
 pub(crate) enum Command {
-    Manual {
-        path: String,
-        format: ManualFormat,
-    },
-    Autocomplete {
-        path: String,
-        shell: clap_complete::Shell,
-    },
+    Manual { path: String, format: ManualFormat },
+    Autocomplete { path: String, shell: clap_complete::Shell },
 
-    Merge {
-        file: String,
-        pattern: String,
-        placeholder: String,
-    },
+    Merge { file: String, regex: String },
 }
 
 pub(crate) struct ClapArgumentLoader {}
@@ -99,12 +86,17 @@ impl ClapArgumentLoader {
                     .alias("m")
                     .about("Merge.")
                     .arg(clap::Arg::new("file").short('f').long("file").required(true))
-                    .arg(clap::Arg::new("pattern").short('p').long("pattern").required(true))
-                    .arg(clap::Arg::new("placeholder").long("placeholder").default_value("%f")),
+                    .arg(
+                        clap::Arg::new("regex")
+                            .short('r')
+                            .long("regex")
+                            .default_value(r#"\{\{\s*([\w./]+)\s*\+?(\d+)?\s*\}\}"#)
+                            .required(false),
+                    ),
             )
     }
 
-    pub fn load() -> Result<CallArgs, Error> {
+    pub fn load() -> Result<CallArgs> {
         let command = Self::root_command().get_matches();
 
         let privileges = if command.get_flag("experimental") {
@@ -119,7 +111,7 @@ impl ClapArgumentLoader {
                 format: match subc.get_one::<String>("format").unwrap().as_str() {
                     | "manpages" => ManualFormat::Manpages,
                     | "markdown" => ManualFormat::Markdown,
-                    | _ => return Err(Error::Argument("unknown format".into())),
+                    | _ => return Err(anyhow::anyhow!("unknown format")),
                 },
             }
         } else if let Some(subc) = command.subcommand_matches("autocomplete") {
@@ -130,11 +122,10 @@ impl ClapArgumentLoader {
         } else if let Some(subc) = command.subcommand_matches("merge") {
             Command::Merge {
                 file: subc.get_one::<String>("file").unwrap().into(),
-                pattern: subc.get_one::<String>("pattern").unwrap().into(),
-                placeholder: subc.get_one::<String>("placeholder").unwrap().into(),
+                regex: subc.get_one::<String>("regex").unwrap().into(),
             }
         } else {
-            return Err(Error::UnknownCommand);
+            return Err(anyhow::anyhow!("unknown command"));
         };
 
         let callargs = CallArgs {

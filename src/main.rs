@@ -1,7 +1,6 @@
 use {
     anyhow::Result,
     args::ManualFormat,
-    error::Error,
     std::path::{
         Path,
         PathBuf,
@@ -9,7 +8,6 @@ use {
 };
 
 pub mod args;
-pub mod error;
 pub mod reference;
 
 #[tokio::main]
@@ -37,53 +35,66 @@ async fn main() -> Result<()> {
             reference::build_shell_completion(&out_path, &shell)?;
             Ok(())
         },
-        | crate::args::Command::Merge {
-            file,
-            pattern,
-            placeholder,
-        } => {
-            merge(std::fs::canonicalize(file)?.as_path(), &pattern, &placeholder).await?;
+        | crate::args::Command::Merge { file, regex } => {
+            merge(std::fs::canonicalize(file)?.as_path(), &regex).await?;
             Ok(())
         },
     }
 }
 
-async fn merge(path: &Path, pattern: &str, placeholder: &str) -> Result<(), Error> {
-    let pat_s = pattern.splitn(2, placeholder).collect::<Vec<_>>();
-    let regex = fancy_regex::Regex::new(&format!(
-        "{}(.*?){}",
-        fancy_regex::escape(&pat_s[0]),
-        fancy_regex::escape(&pat_s[1])
-    ))
-    .or(Err(error::Error::Generic("failed to parse regex".to_owned())))?;
-    let strip = |v: &str| -> String { return v.trim_start_matches(pat_s[0]).trim_end_matches(pat_s[1]).to_owned() };
-
-    print!("{}", resolve_file(path, &regex, &strip)?);
+async fn merge(path: &Path, regex: &str) -> Result<()> {
+    let regex = fancy_regex::Regex::new(regex)?;
+    print!("{}", resolve_file(path, &regex)?);
     Ok(())
 }
 
-fn resolve_file(path: &Path, pattern: &fancy_regex::Regex, strip: &impl Fn(&str) -> String) -> Result<String, Error> {
-    let mut content = std::fs::read_to_string(path).or(Err(Error::Generic(format!(
-        "can not read file {}",
-        path.to_str().unwrap()
-    ))))?;
+fn resolve_file(path: &Path, regex: &fancy_regex::Regex) -> Result<String> {
+    let mut content = std::fs::read_to_string(path)?;
     let rel_dir = path.parent().unwrap();
 
-    for m in pattern.find_iter(&content.clone()) {
-        let mat = m.or(Err(error::Error::Generic("match error".to_owned())))?.as_str();
+    let mut replacements = Vec::new();
+    let captures = regex.captures_iter(&content);
+    for cap in captures {
+        let c = cap?;
+        let file_path = c
+            .get(1)
+            .unwrap()
+            .as_str()
+            .replace("/", &std::path::MAIN_SEPARATOR.to_string());
+        let indentation = match c.get(2) {
+            | Some(v) => v.as_str().parse::<usize>()?,
+            | None => 0_usize,
+        };
 
-        let filename_arg = strip(mat).replace("/", &std::path::MAIN_SEPARATOR.to_string());
-        let subf_content = resolve_file(&rel_dir.join(filename_arg), pattern, strip)?;
+        let file_content = resolve_file(&rel_dir.join(file_path), regex)?;
+        let mut lines = file_content.lines();
+        let indented_content: String = lines
+            .next()
+            .map(|first_line| {
+                let mut result = first_line.to_string();
+                for line in lines {
+                    result.push('\n');
+                    result.push_str(&" ".repeat(indentation));
+                    result.push_str(line);
+                }
+                result
+            })
+            .unwrap_or_default();
 
-        content = content.replace(mat, &subf_content);
+        let start = c.get(0).unwrap().start();
+        let end = c.get(0).unwrap().end();
+        replacements.push((start, end, indented_content));
     }
+    for (start, end, replacement) in replacements.into_iter().rev() {
+        content.replace_range(start..end, &replacement);
+    }
+
     Ok(content)
 }
 
 #[cfg(test)]
 mod tests {
     use {
-        crate::error::Error,
         anyhow::Result,
         std::process::Command,
     };
@@ -91,7 +102,7 @@ mod tests {
     fn exec(command: &str) -> Result<String> {
         let output = Command::new("sh").arg("-c").arg(command).output()?;
         if output.status.code().unwrap() != 0 {
-            return Err(Error::Generic(String::from_utf8(output.stderr).unwrap()).into());
+            return Err(anyhow::anyhow!(String::from_utf8(output.stderr).unwrap()));
         }
         Ok(String::from_utf8(output.stdout)?)
     }
