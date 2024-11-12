@@ -10,5 +10,5 @@
 
 ## Example
 
-- `fmerge merge -p "\{\{\s*([\w./]+)\s*\+?(\d+)?\s*\}\}" ./root.part`
-  Pattern that is matched: `{{ relative_path +indentation }}` -> `{{ leaf.part +2 }}`
+- `fmerge merge -p "\{\{\s*([\w./]+)\s*\+?(\d+)?\s*\}\}" ./root.part`\
+  Pattern that is matched: `{{ relative_path +indentation }}` => `{{ leaf.part +2 }}`
